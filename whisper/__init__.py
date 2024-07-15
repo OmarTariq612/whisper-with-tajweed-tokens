@@ -13,6 +13,8 @@ from .decoding import DecodingOptions, DecodingResult, decode, detect_language
 from .model import ModelDimensions, Whisper
 from .transcribe import transcribe
 from .version import __version__
+from .tokenizer import get_tokenizer
+
 
 _MODELS = {
     "tiny.en": "https://openaipublic.azureedge.net/main/whisper/models/d3dd57d32accea0b295c96e26691aa14d8822fac7d9d27d5dc00b4ca2826dd03/tiny.en.pt",
@@ -146,6 +148,8 @@ def load_model(
         checkpoint = torch.load(fp, map_location=device)
     del checkpoint_file
 
+    tokenizer = get_tokenizer(True, language="arabic", task="transcribe")
+    checkpoint["dims"]["n_vocab"] = max(max(tokenizer.encoding._mergeable_ranks.values()), max(tokenizer.encoding._special_tokens.values())) + 1
     dims = ModelDimensions(**checkpoint["dims"])
     model = Whisper(dims)
     model.load_state_dict(checkpoint["model_state_dict"])
